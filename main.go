@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"./emitter"
 )
 
-var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+var f = func(client emitter.Emitter, msg emitter.Message) {
 	fmt.Printf("TOPIC: %s\n", msg.Topic())
 	//fmt.Printf("MSG: %s\n", msg.Payload())
 
@@ -17,25 +17,25 @@ var f mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 		panic(err)
 	}
 
-	fmt.Println(dat)
+	fmt.Println(dat["time"])
 }
 
 func main() {
 	fmt.Println("Hello world!")
 
-	o := mqtt.NewClientOptions()
+	o := emitter.NewClientOptions()
 	o.AddBroker("tcp://api.emitter.io:8080")
 	o.SetClientID("go-client")
 	o.SetKeepAlive(60 * time.Second)
-	o.SetDefaultPublishHandler(f)
-	c := mqtt.NewClient(o)
+	o.SetOnMessageHandler(f)
+	c := emitter.NewClient(o)
 
 	sToken := c.Connect()
 	if sToken.Wait() && sToken.Error() != nil {
 		panic("Error on Client.Connect(): " + sToken.Error().Error())
 	}
 
-	c.Subscribe("z3D7-osAGTU2mQvCvuGXLcMvPXLGGGcy/cluster", 0, nil)
+	c.Subscribe("z3D7-osAGTU2mQvCvuGXLcMvPXLGGGcy", "cluster")
 
 	// stop after 10 seconds
 	time.Sleep(10 * time.Second)

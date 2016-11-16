@@ -1,6 +1,7 @@
 package emitter
 
 import (
+	"strings"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -29,9 +30,9 @@ type Emitter interface {
 	IsConnected() bool
 	Connect() Token
 	Disconnect(uint)
-	Publish(string, interface{}) Token
-	Subscribe(string) Token
-	Unsubscribe(string) Token
+	Publish(string, string, interface{}) Token
+	Subscribe(string, string) Token
+	Unsubscribe(string, string) Token
 }
 
 type emitter struct {
@@ -111,19 +112,33 @@ func (c *emitter) Disconnect(waitTime uint) {
 // Publish will publish a message with the specified QoS and content
 // to the specified topic.
 // Returns a token to track delivery of the message to the broker
-func (c *emitter) Publish(topic string, payload interface{}) Token {
-	return c.conn.Publish(topic, 0, false, payload)
+func (c *emitter) Publish(key string, channel string, payload interface{}) Token {
+	return c.conn.Publish(formatTopic(key, channel), 0, false, payload)
 }
 
 // Subscribe starts a new subscription. Provide a MessageHandler to be executed when
 // a message is published on the topic provided.
-func (c *emitter) Subscribe(topic string) Token {
-	return c.conn.Subscribe(topic, 0, nil)
+func (c *emitter) Subscribe(key string, channel string) Token {
+	return c.conn.Subscribe(formatTopic(key, channel), 0, nil)
 }
 
 // Unsubscribe will end the subscription from each of the topics provided.
 // Messages published to those topics from other clients will no longer be
 // received.
-func (c *emitter) Unsubscribe(topic string) Token {
-	return c.conn.Unsubscribe(topic)
+func (c *emitter) Unsubscribe(key string, channel string) Token {
+	return c.conn.Unsubscribe(formatTopic(key, channel))
+}
+
+// Makes a topic name from the key/channel pair
+func formatTopic(key string, channel string) string {
+	// Clean the key
+	key = strings.TrimPrefix(key, "/")
+	key = strings.TrimSuffix(key, "/")
+
+	// Clean the channel name
+	channel = strings.TrimPrefix(channel, "/")
+	channel = strings.TrimSuffix(channel, "/")
+
+	// Concatenate
+	return key + "/" + channel + "/"
 }
