@@ -194,28 +194,31 @@ func (c *emitter) Presence(r *PresenceRequest) Token {
 	return c.conn.Publish("emitter/presence/", 0, false, serialized)
 }
 
-// Makes a topic name from the key/channel pair
-func formatTopic(key string, channel string, options []Option) string {
-	// Clean the key
-	key = strings.TrimPrefix(key, "/")
-	key = strings.TrimSuffix(key, "/")
+// OnMessageHandler is a callback type which can be set to be
+// executed upon the arrival of messages published to topics
+// to which the client is subscribed.
+type OnMessageHandler func(Emitter, Message)
 
-	// Clean the channel name
-	channel = strings.TrimPrefix(channel, "/")
-	channel = strings.TrimSuffix(channel, "/")
+// OnKeyGenHandler is a callback type which can be set to be executed upon
+// the arrival of key generation responses.
+type OnKeyGenHandler func(Emitter, KeyGenResponse)
 
-	// Add the options
-	opts := ""
-	if options != nil && len(options) > 0 {
-		opts += "?"
-		for i, option := range options {
-			opts += option.Key + "=" + option.Value
-			if i+1 < len(options) {
-				opts += "&"
-			}
-		}
-	}
+// OnPresenceHandler is a callback type which can be set to be executed upon
+// the arrival of presence events.
+type OnPresenceHandler func(Emitter, PresenceEvent)
 
-	// Concatenate
-	return key + "/" + channel + "/" + opts
+// OnConnectionLostHandler is a callback type which can be set to be
+// executed upon an unintended disconnection from the MQTT broker.
+// Disconnects caused by calling Disconnect or ForceDisconnect will
+// not cause an OnConnectionLost callback to execute.
+type OnConnectionLostHandler func(Emitter, error)
+
+// OnConnectHandler is a callback that is called when the client
+// state changes from unconnected/disconnected to connected. Both
+// at initial connection and on reconnection
+type OnConnectHandler func(Emitter)
+
+// Default connection lost handler, simply prints out the log
+func defaultConnectionLostHandler(client Emitter, reason error) {
+	fmt.Println("Connection lost:", reason.Error())
 }

@@ -3,6 +3,7 @@ package emitter
 import (
 	"crypto/tls"
 	"net/url"
+	"strings"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -166,4 +167,30 @@ func (o *ClientOptions) SetOnKeyGenHandler(handler OnKeyGenHandler) *ClientOptio
 type Option struct {
 	Key   string
 	Value string
+}
+
+// Makes a topic name from the key/channel pair
+func formatTopic(key string, channel string, options []Option) string {
+	// Clean the key
+	key = strings.TrimPrefix(key, "/")
+	key = strings.TrimSuffix(key, "/")
+
+	// Clean the channel name
+	channel = strings.TrimPrefix(channel, "/")
+	channel = strings.TrimSuffix(channel, "/")
+
+	// Add the options
+	opts := ""
+	if options != nil && len(options) > 0 {
+		opts += "?"
+		for i, option := range options {
+			opts += option.Key + "=" + option.Value
+			if i+1 < len(options) {
+				opts += "&"
+			}
+		}
+	}
+
+	// Concatenate
+	return key + "/" + channel + "/" + opts
 }
