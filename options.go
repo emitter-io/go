@@ -160,3 +160,10 @@ func (o *ClientOptions) SetOnKeyGenHandler(handler OnKeyGenHandler) *ClientOptio
 	o.OnKeyGen = handler
 	return o
 }
+
+// Option represents a key/value pair that can be supplied to the publish/subscribe or unsubscribe
+// methods and provide ways to configure the operation.
+type Option struct {
+	Key   string
+	Value string
+}

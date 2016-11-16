@@ -3,6 +3,7 @@ package emitter
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,9 +33,11 @@ type Emitter interface {
 	IsConnected() bool
 	Connect() Token
 	Disconnect(uint)
-	Publish(string, string, interface{}) Token
-	Subscribe(string, string) Token
-	Unsubscribe(string, string) Token
+	Publish(string, string, interface{}, ...Option) Token
+	PublishWithTTL(string, string, interface{}, int) Token
+	Subscribe(string, string, ...Option) Token
+	SubscribeWithHistory(string, string, int) Token
+	Unsubscribe(string, string, ...Option) Token
 	Presence(*PresenceRequest) Token
 	GenerateKey(*KeyGenRequest) Token
 }
@@ -141,21 +144,34 @@ func (c *emitter) Disconnect(waitTime uint) {
 // Publish will publish a message with the specified QoS and content
 // to the specified topic.
 // Returns a token to track delivery of the message to the broker
-func (c *emitter) Publish(key string, channel string, payload interface{}) Token {
-	return c.conn.Publish(formatTopic(key, channel), 0, false, payload)
+func (c *emitter) Publish(key string, channel string, payload interface{}, options ...Option) Token {
+	return c.conn.Publish(formatTopic(key, channel, options), 0, false, payload)
+}
+
+// PublishWithTTL publishes a message with a specified Time-To-Live option
+func (c *emitter) PublishWithTTL(key string, channel string, payload interface{}, ttl int) Token {
+	opt1 := Option{Key: "ttl", Value: strconv.Itoa(ttl)}
+	return c.Publish(key, channel, payload, opt1)
 }
 
 // Subscribe starts a new subscription. Provide a MessageHandler to be executed when
 // a message is published on the topic provided.
-func (c *emitter) Subscribe(key string, channel string) Token {
-	return c.conn.Subscribe(formatTopic(key, channel), 0, nil)
+func (c *emitter) Subscribe(key string, channel string, options ...Option) Token {
+	return c.conn.Subscribe(formatTopic(key, channel, options), 0, nil)
+}
+
+// SubscribeWithHistory performs a subscribe with an option to retrieve the specified number
+// of messages that were already published in the channel.
+func (c *emitter) SubscribeWithHistory(key string, channel string, last int) Token {
+	opt1 := Option{Key: "last", Value: strconv.Itoa(last)}
+	return c.Subscribe(key, channel, opt1)
 }
 
 // Unsubscribe will end the subscription from each of the topics provided.
 // Messages published to those topics from other clients will no longer be
 // received.
-func (c *emitter) Unsubscribe(key string, channel string) Token {
-	return c.conn.Unsubscribe(formatTopic(key, channel))
+func (c *emitter) Unsubscribe(key string, channel string, options ...Option) Token {
+	return c.conn.Unsubscribe(formatTopic(key, channel, options))
 }
 
 // GenerateKey sends a key generation request to the broker
@@ -179,7 +195,7 @@ func (c *emitter) Presence(r *PresenceRequest) Token {
 }
 
 // Makes a topic name from the key/channel pair
-func formatTopic(key string, channel string) string {
+func formatTopic(key string, channel string, options []Option) string {
 	// Clean the key
 	key = strings.TrimPrefix(key, "/")
 	key = strings.TrimSuffix(key, "/")
@@ -188,6 +204,18 @@ func formatTopic(key string, channel string) string {
 	channel = strings.TrimPrefix(channel, "/")
 	channel = strings.TrimSuffix(channel, "/")
 
+	// Add the options
+	opts := ""
+	if options != nil && len(options) > 0 {
+		opts += "?"
+		for i, option := range options {
+			opts += option.Key + "=" + option.Value
+			if i+1 < len(options) {
+				opts += "&"
+			}
+		}
+	}
+
 	// Concatenate
-	return key + "/" + channel + "/"
+	return key + "/" + channel + "/" + opts
 }

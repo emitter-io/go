@@ -1,10 +1,10 @@
-package main
+package sample
 
 import (
 	"fmt"
 	"time"
 
-	"./emitter"
+	emitter "github.com/emitter-io/go"
 )
 
 func main() {
