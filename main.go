@@ -21,7 +21,6 @@ var f = func(client emitter.Emitter, msg emitter.Message) {
 }
 
 func main() {
-	fmt.Println("Hello world!")
 
 	o := emitter.NewClientOptions()
 	o.AddBroker("tcp://api.emitter.io:8080")
@@ -44,10 +43,10 @@ func main() {
 	r := emitter.NewPresenceRequest()
 	r.Key = "X4-nUeHjiAygHMdN8wst82S3c2KcCMn7"
 	r.Channel = "presence-demo/1"
-	x := c.Presence(r)
-	if x.Wait() && x.Error() != nil {
-		panic("Error on Client.Presence(): " + x.Error().Error())
-	}
+	c.Presence(r)
+	//if x.Wait() && x.Error() != nil {
+	//	panic("Error on Client.Presence(): " + x.Error().Error())
+	//}
 
 	// stop after 10 seconds
 	time.Sleep(10 * time.Second)

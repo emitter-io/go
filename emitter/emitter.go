@@ -86,6 +86,7 @@ func NewClient(o *ClientOptions) Emitter {
 
 	// Set the mqtt handler to call out into our emitter connection lost handler
 	mqttOptions.SetDefaultPublishHandler(func(_ mqtt.Client, m mqtt.Message) {
+
 		if strings.HasPrefix(m.Topic(), "emitter/keygen") {
 			// Invoke the keygen event
 			if o.OnKeyGen != nil {
