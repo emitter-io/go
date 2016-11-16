@@ -7,6 +7,14 @@ import "fmt"
 // to which the client is subscribed.
 type OnMessageHandler func(Emitter, Message)
 
+// OnKeyGenHandler is a callback type which can be set to be executed upon
+// the arrival of key generation responses.
+type OnKeyGenHandler func(Emitter, KeyGenResponse)
+
+// OnPresenceHandler is a callback type which can be set to be executed upon
+// the arrival of presence events.
+type OnPresenceHandler func(Emitter, PresenceEvent)
+
 // OnConnectionLostHandler is a callback type which can be set to be
 // executed upon an unintended disconnection from the MQTT broker.
 // Disconnects caused by calling Disconnect or ForceDisconnect will

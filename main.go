@@ -28,6 +28,10 @@ func main() {
 	o.SetClientID("go-client")
 	o.SetKeepAlive(60 * time.Second)
 	o.SetOnMessageHandler(f)
+	o.SetOnPresenceHandler(func(_ emitter.Emitter, p emitter.PresenceEvent) {
+		fmt.Printf("Occupancy: %v\n", p.Occupancy)
+	})
+
 	c := emitter.NewClient(o)
 
 	sToken := c.Connect()
@@ -35,7 +39,15 @@ func main() {
 		panic("Error on Client.Connect(): " + sToken.Error().Error())
 	}
 
-	c.Subscribe("z3D7-osAGTU2mQvCvuGXLcMvPXLGGGcy", "cluster")
+	//c.Subscribe("z3D7-osAGTU2mQvCvuGXLcMvPXLGGGcy", "cluster")
+
+	r := emitter.NewPresenceRequest()
+	r.Key = "X4-nUeHjiAygHMdN8wst82S3c2KcCMn7"
+	r.Channel = "presence-demo/1"
+	x := c.Presence(r)
+	if x.Wait() && x.Error() != nil {
+		panic("Error on Client.Presence(): " + x.Error().Error())
+	}
 
 	// stop after 10 seconds
 	time.Sleep(10 * time.Second)

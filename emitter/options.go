@@ -4,6 +4,8 @@ import (
 	"crypto/tls"
 	"net/url"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // ClientOptions contains configurable options for an Client.
@@ -21,21 +23,15 @@ type ClientOptions struct {
 	OnMessage            OnMessageHandler
 	OnConnect            OnConnectHandler
 	OnConnectionLost     OnConnectionLostHandler
+	OnKeyGen             OnKeyGenHandler
+	OnPresence           OnPresenceHandler
 }
 
-// NewClientOptions will create a new ClientClientOptions type with some
-// default values.
-//   Port: 1883
-//   CleanSession: True
-//   Order: True
-//   KeepAlive: 30 (seconds)
-//   ConnectTimeout: 30 (seconds)
-//   MaxReconnectInterval 10 (minutes)
-//   AutoReconnect: True
+// NewClientOptions will create a new ClientClientOptions type with some default values.
 func NewClientOptions() *ClientOptions {
 	o := &ClientOptions{
 		Servers:              nil,
-		ClientID:             "",
+		ClientID:             uuid.NewV1().String(),
 		Username:             "",
 		Password:             "",
 		TLSConfig:            tls.Config{},
@@ -150,5 +146,17 @@ func (o *ClientOptions) SetMaxReconnectInterval(t time.Duration) *ClientOptions 
 // called
 func (o *ClientOptions) SetAutoReconnect(a bool) *ClientOptions {
 	o.AutoReconnect = a
+	return o
+}
+
+// SetOnPresenceHandler sets the OnPresenceHandler that will be called when a presence event is received.
+func (o *ClientOptions) SetOnPresenceHandler(handler OnPresenceHandler) *ClientOptions {
+	o.OnPresence = handler
+	return o
+}
+
+// SetOnKeyGenHandler sets the OnKeyGenHandler that will be called when a key generation response is received.
+func (o *ClientOptions) SetOnKeyGenHandler(handler OnKeyGenHandler) *ClientOptions {
+	o.OnKeyGen = handler
 	return o
 }

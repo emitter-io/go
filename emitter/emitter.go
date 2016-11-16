@@ -1,6 +1,8 @@
 package emitter
 
 import (
+	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -33,6 +35,8 @@ type Emitter interface {
 	Publish(string, string, interface{}) Token
 	Subscribe(string, string) Token
 	Unsubscribe(string, string) Token
+	Presence(*PresenceRequest) Token
+	GenerateKey(*KeyGenRequest) Token
 }
 
 type emitter struct {
@@ -47,6 +51,11 @@ func NewClient(o *ClientOptions) Emitter {
 
 	// Create an emitter client
 	c := &emitter{}
+
+	// If there's no brokers configured, configure the default one
+	if o.Servers == nil {
+		o.AddBroker("tcp://api.emitter.io:8080")
+	}
 
 	// Copy options to mqtt.ClientOptions
 	mqttOptions := mqtt.NewClientOptions()
@@ -77,8 +86,27 @@ func NewClient(o *ClientOptions) Emitter {
 
 	// Set the mqtt handler to call out into our emitter connection lost handler
 	mqttOptions.SetDefaultPublishHandler(func(_ mqtt.Client, m mqtt.Message) {
-		if o.OnMessage != nil {
-			o.OnMessage(c, m)
+		if strings.HasPrefix(m.Topic(), "emitter/keygen") {
+			// Invoke the keygen event
+			if o.OnKeyGen != nil {
+				r := &KeyGenResponse{}
+				json.Unmarshal(m.Payload(), r)
+				o.OnKeyGen(c, *r)
+			}
+
+		} else if strings.HasPrefix(m.Topic(), "emitter/presence") {
+			// Invoke the presence event
+			if o.OnPresence != nil {
+				r := &PresenceEvent{}
+				json.Unmarshal(m.Payload(), r)
+				o.OnPresence(c, *r)
+			}
+
+		} else {
+			// Invoke message handler
+			if o.OnMessage != nil {
+				o.OnMessage(c, m)
+			}
 		}
 	})
 
@@ -127,6 +155,26 @@ func (c *emitter) Subscribe(key string, channel string) Token {
 // received.
 func (c *emitter) Unsubscribe(key string, channel string) Token {
 	return c.conn.Unsubscribe(formatTopic(key, channel))
+}
+
+// GenerateKey sends a key generation request to the broker
+func (c *emitter) GenerateKey(r *KeyGenRequest) Token {
+	serialized, err := json.Marshal(r)
+	if err != nil {
+		fmt.Println("Unable to serialize keygen request.")
+	}
+
+	return c.conn.Publish("emitter/keygen/", 0, false, serialized)
+}
+
+// GenerateKey sends a key generation request to the broker
+func (c *emitter) Presence(r *PresenceRequest) Token {
+	serialized, err := json.Marshal(r)
+	if err != nil {
+		fmt.Println("Unable to serialize presence request.")
+	}
+
+	return c.conn.Publish("emitter/presence/", 0, false, serialized)
 }
 
 // Makes a topic name from the key/channel pair

@@ -16,4 +16,5 @@ The client depends on Eclipse Paho MQTT Go Client and Google's websockets packag
 ```
 go get github.com/eclipse/paho.mqtt.golang
 go get golang.org/x/net/websocket
+go get github.com/satori/go.uuid
 ```
