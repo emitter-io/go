@@ -1,5 +1,5 @@
 # Emitter Golang SDK [![api documentation](http://b.repl.ca/v1/api-documentation-green.png)](https://godoc.org/github.com/emitter-io/go)
-This repository contains Go/Golang client for [Emitter](https://emitter.io) (see also on [Emitter GitHub](https://github.com/emitter-io/emitter)). Emitter is an **open-source** real-time communication service for connecting online devices. Infrastructure and APIs for IoT, gaming, apps and real-time web. At its core, emitter.io is a distributed, scalable and fault-tolerant publish-subscribe messaging platform based on MQTT protocol and featuring message storage.
+This repository contains Go/Golang client for [Emitter](https://emitter.io) (see also on [Emitter GitHub](https://github.com/emitter-io/emitter)). Emitter is an **open-source** real-time communication service for connecting online devices. At its core, emitter.io is a distributed, scalable and fault-tolerant publish-subscribe messaging platform based on MQTT protocol and featuring message storage.
 
 This library provides a nicer MQTT interface fine-tuned and extended with specific features provided by [Emitter](https://emitter.io). The code uses the [Eclipse Paho MQTT Go Client](https://github.com/eclipse/paho.mqtt.golang) for handling all the network communication and MQTT protocol, and is released under the same license (EPL v1). 
 
