@@ -67,7 +67,7 @@ func NewClient(o *ClientOptions) Emitter {
 	mqttOptions.Username = o.Username
 	mqttOptions.Password = o.Password
 	mqttOptions.TLSConfig = o.TLSConfig
-	mqttOptions.KeepAlive = o.KeepAlive
+	mqttOptions.KeepAlive = int64(o.KeepAlive)
 	mqttOptions.PingTimeout = o.PingTimeout
 	mqttOptions.ConnectTimeout = o.ConnectTimeout
 	mqttOptions.MaxReconnectInterval = o.MaxReconnectInterval
