@@ -54,16 +54,10 @@ func main() {
 This client, similarly to the Eclipse Paho client is designed to work with the standard Go tools, so installation is as easy as:
 
 ```go
-go get github.com/emitter-io/go
+go get -u github.com/emitter-io/go
 ```
 
-The client depends on Eclipse Paho MQTT Go Client and Google's websockets package, also easily installed with the command:
-
-```go
-go get github.com/eclipse/paho.mqtt.golang
-go get golang.org/x/net/websocket
-go get github.com/satori/go.uuid
-```
+For usage, please refer to the `sample` sub-folder in this repository which provides a sample application on how to use the API.
 
 ## API Documentation
 

@@ -1,0 +1,37 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "TDRF+FEGi4LDbuoiMBgpzZSuhP8=",
+			"path": "github.com/eclipse/paho.mqtt.golang",
+			"revision": "bab87cde322cf9aec420645d1e9801d0f216f791",
+			"revisionTime": "2018-01-19T12:21:19Z"
+		},
+		{
+			"checksumSHA1": "SPEmhYLaFizUPMJQC/HsCwIzVvY=",
+			"path": "github.com/eclipse/paho.mqtt.golang/packets",
+			"revision": "bab87cde322cf9aec420645d1e9801d0f216f791",
+			"revisionTime": "2018-01-19T12:21:19Z"
+		},
+		{
+			"checksumSHA1": "+RPbt/bqx8qmTbdc2bL0cjCbVNg=",
+			"path": "github.com/satori/go.uuid",
+			"revision": "36e9d2ebbde5e3f13ab2e25625fd453271d6522e",
+			"revisionTime": "2018-01-03T17:44:51Z"
+		},
+		{
+			"checksumSHA1": "r9l4r3H6FOLQ0c2JaoXpopFjpnw=",
+			"path": "golang.org/x/net/proxy",
+			"revision": "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec",
+			"revisionTime": "2018-01-12T01:53:59Z"
+		},
+		{
+			"checksumSHA1": "7EZyXN0EmZLgGxZxK01IJua4c8o=",
+			"path": "golang.org/x/net/websocket",
+			"revision": "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec",
+			"revisionTime": "2018-01-12T01:53:59Z"
+		}
+	],
+	"rootPath": "github.com/emitter-io/go"
+}

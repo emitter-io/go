@@ -8,6 +8,11 @@
         "LICENSE": true,
         ".gitignore": true,
         ".vscode": true,
-        "debug": true
-    }
+        "debug": true,
+        "vendor/": true,
+    },
+    "go.formatTool": "gofmt",
+    "go.formatFlags": [
+        "-s"
+    ]
 }

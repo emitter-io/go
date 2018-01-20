@@ -15,7 +15,7 @@ type ClientOptions struct {
 	ClientID             string
 	Username             string
 	Password             string
-	TLSConfig            tls.Config
+	TLSConfig            *tls.Config
 	KeepAlive            time.Duration
 	PingTimeout          time.Duration
 	ConnectTimeout       time.Duration
@@ -30,12 +30,18 @@ type ClientOptions struct {
 
 // NewClientOptions will create a new ClientClientOptions type with some default values.
 func NewClientOptions() *ClientOptions {
+	id, err := uuid.NewV1()
+	if err != nil {
+		panic(err)
+	}
+
+	// Create new client options with defaults
 	o := &ClientOptions{
 		Servers:              nil,
-		ClientID:             uuid.NewV1().String(),
+		ClientID:             id.String(),
 		Username:             "",
 		Password:             "",
-		TLSConfig:            tls.Config{},
+		TLSConfig:            &tls.Config{},
 		KeepAlive:            30 * time.Second,
 		PingTimeout:          10 * time.Second,
 		ConnectTimeout:       30 * time.Second,
@@ -85,7 +91,7 @@ func (o *ClientOptions) SetPassword(p string) *ClientOptions {
 // to an MQTT broker. Please read the official Go documentation for more
 // information.
 func (o *ClientOptions) SetTLSConfig(t *tls.Config) *ClientOptions {
-	o.TLSConfig = *t
+	o.TLSConfig = t
 	return o
 }
 

@@ -63,15 +63,15 @@ func NewClient(o *ClientOptions) Emitter {
 	// Copy options to mqtt.ClientOptions
 	mqttOptions := mqtt.NewClientOptions()
 	mqttOptions.Servers = o.Servers
-	mqttOptions.ClientID = o.ClientID
-	mqttOptions.Username = o.Username
-	mqttOptions.Password = o.Password
-	mqttOptions.TLSConfig = o.TLSConfig
-	mqttOptions.KeepAlive = int64(o.KeepAlive)
-	mqttOptions.PingTimeout = o.PingTimeout
-	mqttOptions.ConnectTimeout = o.ConnectTimeout
-	mqttOptions.MaxReconnectInterval = o.MaxReconnectInterval
-	mqttOptions.AutoReconnect = o.AutoReconnect
+	mqttOptions.SetClientID(o.ClientID)
+	mqttOptions.SetUsername(o.Username)
+	mqttOptions.SetPassword(o.Password)
+	mqttOptions.SetKeepAlive(o.KeepAlive)
+	mqttOptions.SetPingTimeout(o.PingTimeout)
+	mqttOptions.SetConnectTimeout(o.ConnectTimeout)
+	mqttOptions.SetMaxReconnectInterval(o.MaxReconnectInterval)
+	mqttOptions.SetAutoReconnect(o.AutoReconnect)
+	mqttOptions.SetTLSConfig(o.TLSConfig)
 
 	// Set the mqtt handler to call out into our emitter connection handler
 	mqttOptions.SetOnConnectHandler(func(_ mqtt.Client) {
