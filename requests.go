@@ -12,9 +12,10 @@ type KeyGenRequest struct {
 // KeyGenResponse  represents a response from emitter broker which contains
 // the response to the key generation request.
 type KeyGenResponse struct {
-	Status  int    `json:"status"`
-	Key     string `json:"key"`
-	Channel string `json:"channel"`
+	Status       int    `json:"status"`
+	Key          string `json:"key"`
+	Channel      string `json:"channel"`
+	ErrorMessage string `json:"message"`
 }
 
 // PresenceRequest represents a request that can be sent to emitter broker
