@@ -30,7 +30,7 @@ type ClientOptions struct {
 
 // NewClientOptions will create a new ClientClientOptions type with some default values.
 func NewClientOptions() *ClientOptions {
-	id := uuid.NewV1()
+	id, _ := uuid.NewV4()
 
 	// Create new client options with defaults
 	o := &ClientOptions{
