@@ -23,3 +23,8 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+# Editor files
+.vscode/
+*~
+.idea/
