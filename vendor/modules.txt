@@ -1,0 +1,8 @@
+# github.com/eclipse/paho.mqtt.golang v0.0.0-20180119122119-bab87cde322c
+github.com/eclipse/paho.mqtt.golang
+github.com/eclipse/paho.mqtt.golang/packets
+# github.com/satori/go.uuid v1.2.0
+github.com/satori/go.uuid
+# golang.org/x/net v0.0.0-20180112015858-5ccada7d0a7b
+golang.org/x/net/proxy
+golang.org/x/net/websocket
