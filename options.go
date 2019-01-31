@@ -2,6 +2,7 @@ package emitter
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ type ClientOptions struct {
 	OnConnectionLost     OnConnectionLostHandler
 	OnKeyGen             OnKeyGenHandler
 	OnPresence           OnPresenceHandler
+	OnLink               OnLinkHandler
 }
 
 // NewClientOptions will create a new ClientClientOptions type with some default values.
@@ -165,6 +167,12 @@ func (o *ClientOptions) SetOnKeyGenHandler(handler OnKeyGenHandler) *ClientOptio
 	return o
 }
 
+// SetOnLinkHandler sets the SetOnLinkHandler that will be called when a link creation response is received.
+func (o *ClientOptions) SetOnLinkHandler(handler OnLinkHandler) *ClientOptions {
+	o.OnLink = handler
+	return o
+}
+
 // Option represents a key/value pair that can be supplied to the publish/subscribe or unsubscribe
 // methods and provide ways to configure the operation.
 type Option struct {
@@ -195,5 +203,9 @@ func formatTopic(key string, channel string, options []Option) string {
 	}
 
 	// Concatenate
-	return key + "/" + channel + "/" + opts
+	if len(key) == 0 {
+		return fmt.Sprintf("%s/%s", channel, opts)
+	}
+
+	return fmt.Sprintf("%s/%s/%s", key, channel, opts)
 }

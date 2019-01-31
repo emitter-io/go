@@ -30,11 +30,10 @@ type PresenceRequest struct {
 // PresenceEvent  represents a response from emitter broker which contains
 // presence state or a join/leave notification.
 type PresenceEvent struct {
-	Event     string         `json:"event"`
-	Channel   string         `json:"channel"`
-	Occupancy int            `json:"occupancy"`
-	Time      int            `json:"time"`
-	Who       []PresenceInfo `json:"who"`
+	Event   string         `json:"event"`
+	Channel string         `json:"channel"`
+	Time    int            `json:"time"`
+	Who     []PresenceInfo `json:"who"`
 }
 
 // PresenceInfo represents a response from emitter broker which contains
@@ -42,6 +41,22 @@ type PresenceEvent struct {
 type PresenceInfo struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
+}
+
+// LinkRequest represents a request to create a link.
+type linkRequest struct {
+	Name      string `json:"name"`      // The name of the shortcut, max 2 characters.
+	Key       string `json:"key"`       // The key for the channel.
+	Channel   string `json:"channel"`   // The channel name for the shortcut.
+	Subscribe bool   `json:"subscribe"` // Specifies whether the broker should auto-subscribe.
+	Private   bool   `json:"private"`   // Specifies whether the broker should generate a private link.
+}
+
+// LinkResponse represents a response for the link creation.
+type LinkResponse struct {
+	Status  int    `json:"status"`            // The status of the response.
+	Name    string `json:"name,omitempty"`    // The name of the shortcut, max 2 characters.
+	Channel string `json:"channel,omitempty"` // The channel which was registered.
 }
 
 // NewKeyGenRequest creates a new KeyGenRequest type with some default values.
