@@ -7,8 +7,6 @@ import (
 	emitter "github.com/emitter-io/go/v2"
 )
 
-// demo license: zT83oDV0DWY5_JysbSTPTDr8KB0AAAAAAAAAAAAAAAI
-// demo secret key: kBCZch5re3Ue-kpG1Aa8Vo7BYvXZ3UwR
 func main() {
 	clientA()
 	clientB()
