@@ -26,14 +26,6 @@ type Message interface {
 	Payload() []byte
 }
 
-//Token defines the interface for the tokens used to indicate when
-//actions have completed.
-type Token interface {
-	Wait() bool
-	WaitTimeout(time.Duration) bool
-	Error() error
-}
-
 // Client represents an emitter client which holds the connection.
 type Client struct {
 	sync.Mutex
