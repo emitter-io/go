@@ -63,7 +63,9 @@ func clientB(t *testing.T) {
 
 	// Ask to create a private link
 	fmt.Println("[emitter] <- [B] creating a private link")
-	link, err := c.CreatePrivateLink(key, "sdk-integration-test/", "1", true)
+	link, err := c.CreatePrivateLink(key, "sdk-integration-test/", "1", func(_ *Client, msg Message) {
+		fmt.Printf("[emitter] -> [B] received from private link: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
+	})
 	assert.NoError(t, err)
 	assert.NotNil(t, link)
 

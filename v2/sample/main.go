@@ -60,7 +60,9 @@ func clientB() {
 
 	// Ask to create a private link
 	fmt.Println("[emitter] <- [B] creating a private link")
-	link, _ := c.CreatePrivateLink(key, "sdk-integration-test/", "1", true)
+	link, _ := c.CreatePrivateLink(key, "sdk-integration-test/", "1", func(_ *emitter.Client, msg emitter.Message) {
+		fmt.Printf("[emitter] -> [B] received from private link: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
+	})
 	fmt.Println("[emitter] -> [B] received link " + link.Channel)
 
 	// Publish to the private link
