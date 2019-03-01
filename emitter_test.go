@@ -1,12 +1,13 @@
 package emitter
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-/*
 func TestEndToEnd(t *testing.T) {
 	clientA(t)
 	clientB(t)
@@ -71,7 +72,7 @@ func clientB(t *testing.T) {
 	// Publish to the private link
 	fmt.Println("[emitter] <- [B] publishing to private link")
 	c.PublishWithLink("1", "hi from private link")
-}*/
+}
 
 func TestFormatTopic(t *testing.T) {
 	tests := []struct {
