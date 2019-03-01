@@ -281,8 +281,8 @@ func (c *Client) Subscribe(key string, channel string, optionalHandler MessageHa
 	return c.do(token)
 }
 
-// SubscribeWithShare creates a shared subscription to a share group.
-func (c *Client) SubscribeWithShare(key, channel, shareGroup string, optionalHandler MessageHandler, options ...Option) error {
+// SubscribeWithGroup creates a shared subscription to a share group.
+func (c *Client) SubscribeWithGroup(key, channel, shareGroup string, optionalHandler MessageHandler, options ...Option) error {
 	if optionalHandler != nil {
 		c.handlers.AddHandler(channel, optionalHandler)
 	}

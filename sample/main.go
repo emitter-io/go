@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	emitter "github.com/emitter-io/go/v2"
+	emitter "github.com/emitter-io/go"
 )
 
 func main() {
