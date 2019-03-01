@@ -1,13 +1,12 @@
 package emitter
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
+/*
 func TestEndToEnd(t *testing.T) {
 	clientA(t)
 	clientB(t)
@@ -72,4 +71,52 @@ func clientB(t *testing.T) {
 	// Publish to the private link
 	fmt.Println("[emitter] <- [B] publishing to private link")
 	c.PublishWithLink("1", "hi from private link")
+}*/
+
+func TestFormatTopic(t *testing.T) {
+	tests := []struct {
+		key     string
+		channel string
+		options []Option
+		result  string
+	}{
+		{channel: "a/b/c", result: "a/b/c/"},
+		{key: "key", channel: "channel", result: "key/channel/"},
+		{key: "key", channel: "a/b/c", result: "key/a/b/c/"},
+		{key: "key", channel: "a/b/c", options: []Option{WithoutEcho()}, result: "key/a/b/c/?me=0"},
+		{key: "key", channel: "a/b/c", options: []Option{WithoutEcho(), WithAtLeastOnce(), WithLast(100)}, result: "key/a/b/c/?me=0&last=100"},
+		{key: "key", channel: "a/b/c", options: []Option{WithAtLeastOnce(), WithoutEcho(), WithLast(100)}, result: "key/a/b/c/?me=0&last=100"},
+		{key: "key", channel: "a/b/c", options: []Option{WithoutEcho(), WithLast(100), WithAtLeastOnce()}, result: "key/a/b/c/?me=0&last=100"},
+	}
+
+	for _, tc := range tests {
+		topic := formatTopic(tc.key, tc.channel, tc.options)
+		assert.Equal(t, tc.result, topic)
+	}
+}
+
+func TestGetHeader(t *testing.T) {
+	tests := []struct {
+		options []Option
+		qos     byte
+		retain  bool
+	}{
+
+		{options: []Option{WithoutEcho()}, qos: 0, retain: false},
+		{options: []Option{WithoutEcho(), WithAtLeastOnce(), WithLast(100)}, qos: 1, retain: false},
+		{options: []Option{WithAtLeastOnce(), WithoutEcho(), WithLast(100)}, qos: 1, retain: false},
+		{options: []Option{WithoutEcho(), WithLast(100), WithAtLeastOnce()}, qos: 1, retain: false},
+		{options: []Option{WithoutEcho(), WithRetain(), WithAtMostOnce()}, qos: 0, retain: true},
+	}
+
+	for _, tc := range tests {
+		qos, retain := getHeader(tc.options)
+		assert.Equal(t, tc.qos, qos)
+		assert.Equal(t, tc.retain, retain)
+	}
+}
+
+func TestFormatShare(t *testing.T) {
+	topic := formatShare("/key/", "share1", "/a/b/c/", []Option{WithoutEcho()})
+	assert.Equal(t, "key/$share/share1/a/b/c/?me=0", topic)
 }

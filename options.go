@@ -2,210 +2,150 @@ package emitter
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net/url"
-	"strings"
+	"strconv"
 	"time"
-
-	uuid "github.com/satori/go.uuid"
 )
 
-// ClientOptions contains configurable options for an Client.
-type ClientOptions struct {
-	Servers              []*url.URL
-	ClientID             string
-	Username             string
-	Password             string
-	TLSConfig            *tls.Config
-	KeepAlive            time.Duration
-	PingTimeout          time.Duration
-	ConnectTimeout       time.Duration
-	MaxReconnectInterval time.Duration
-	AutoReconnect        bool
-	OnMessage            OnMessageHandler
-	OnConnect            OnConnectHandler
-	OnConnectionLost     OnConnectionLostHandler
-	OnKeyGen             OnKeyGenHandler
-	OnPresence           OnPresenceHandler
-	OnLink               OnLinkHandler
-}
-
-// NewClientOptions will create a new ClientClientOptions type with some default values.
-func NewClientOptions() *ClientOptions {
-	id := uuid.NewV1()
-
-	// Create new client options with defaults
-	o := &ClientOptions{
-		Servers:              nil,
-		ClientID:             id.String(),
-		Username:             "",
-		Password:             "",
-		TLSConfig:            &tls.Config{},
-		KeepAlive:            30 * time.Second,
-		PingTimeout:          10 * time.Second,
-		ConnectTimeout:       30 * time.Second,
-		MaxReconnectInterval: 10 * time.Minute,
-		AutoReconnect:        true,
-		OnConnect:            nil,
-		OnConnectionLost:     defaultConnectionLostHandler,
-	}
-	return o
-}
-
-// AddBroker adds a broker URI to the list of brokers to be used. The format should be
-// scheme://host:port
+// WithBrokers configures broker URIs to connect to. The format should be scheme://host:port
 // Where "scheme" is one of "tcp", "ssl", or "ws", "host" is the ip-address (or hostname)
 // and "port" is the port on which the broker is accepting connections.
-func (o *ClientOptions) AddBroker(server string) *ClientOptions {
-	brokerURI, _ := url.Parse(server)
-	o.Servers = append(o.Servers, brokerURI)
-	return o
+func WithBrokers(brokers ...string) func(*Client) {
+	return func(c *Client) {
+		c.opts.Servers = []*url.URL{}
+		for _, broker := range brokers {
+			brokerURI, err := url.Parse(broker)
+			if err != nil {
+				panic(err)
+			}
+
+			c.opts.Servers = append(c.opts.Servers, brokerURI)
+		}
+	}
 }
 
-// SetClientID will set the client id to be used by this client when
+// WithClientID will set the client id to be used by this client when
 // connecting to the MQTT broker. According to the MQTT v3.1 specification,
 // a client id mus be no longer than 23 characters.
-func (o *ClientOptions) SetClientID(id string) *ClientOptions {
-	o.ClientID = id
-	return o
+func WithClientID(id string) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetClientID(id)
+	}
 }
 
-// SetUsername will set the username to be used by this client when connecting
+// WithUsername will set the username to be used by this client when connecting
 // to the MQTT broker. Note: without the use of SSL/TLS, this information will
 // be sent in plaintext accross the wire.
-func (o *ClientOptions) SetUsername(u string) *ClientOptions {
-	o.Username = u
-	return o
+func WithUsername(username string) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetUsername(username)
+	}
 }
 
-// SetPassword will set the password to be used by this client when connecting
+// WithPassword will set the password to be used by this client when connecting
 // to the MQTT broker. Note: without the use of SSL/TLS, this information will
 // be sent in plaintext accross the wire.
-func (o *ClientOptions) SetPassword(p string) *ClientOptions {
-	o.Password = p
-	return o
+func WithPassword(password string) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetPassword(password)
+	}
 }
 
-// SetTLSConfig will set an SSL/TLS configuration to be used when connecting
+// WithTLSConfig will set an SSL/TLS configuration to be used when connecting
 // to an MQTT broker. Please read the official Go documentation for more
 // information.
-func (o *ClientOptions) SetTLSConfig(t *tls.Config) *ClientOptions {
-	o.TLSConfig = t
-	return o
+func WithTLSConfig(t *tls.Config) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetTLSConfig(t)
+	}
 }
 
-// SetKeepAlive will set the amount of time (in seconds) that the client
+// WithKeepAlive will set the amount of time (in seconds) that the client
 // should wait before sending a PING request to the broker. This will
 // allow the client to know that a connection has not been lost with the
 // server.
-func (o *ClientOptions) SetKeepAlive(k time.Duration) *ClientOptions {
-	o.KeepAlive = k
-	return o
+func WithKeepAlive(k time.Duration) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetKeepAlive(k)
+	}
 }
 
-// SetPingTimeout will set the amount of time (in seconds) that the client
+// WithPingTimeout will set the amount of time (in seconds) that the client
 // will wait after sending a PING request to the broker, before deciding
 // that the connection has been lost. Default is 10 seconds.
-func (o *ClientOptions) SetPingTimeout(k time.Duration) *ClientOptions {
-	o.PingTimeout = k
-	return o
+func WithPingTimeout(k time.Duration) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetPingTimeout(k)
+	}
 }
 
-// SetOnMessageHandler sets the MessageHandler that will be called when a message
-// is received that does not match any known subscriptions.
-func (o *ClientOptions) SetOnMessageHandler(defaultHandler OnMessageHandler) *ClientOptions {
-	o.OnMessage = defaultHandler
-	return o
-}
-
-// SetOnConnectHandler sets the function to be called when the client is connected. Both
-// at initial connection time and upon automatic reconnect.
-func (o *ClientOptions) SetOnConnectHandler(onConn OnConnectHandler) *ClientOptions {
-	o.OnConnect = onConn
-	return o
-}
-
-// SetOnConnectionLostHandler will set the OnConnectionLost callback to be executed
-// in the case where the client unexpectedly loses connection with the MQTT broker.
-func (o *ClientOptions) SetOnConnectionLostHandler(onLost OnConnectionLostHandler) *ClientOptions {
-	o.OnConnectionLost = onLost
-	return o
-}
-
-// SetConnectTimeout limits how long the client will wait when trying to open a connection
+// WithConnectTimeout limits how long the client will wait when trying to open a connection
 // to an MQTT server before timeing out and erroring the attempt. A duration of 0 never times out.
 // Default 30 seconds. Currently only operational on TCP/TLS connections.
-func (o *ClientOptions) SetConnectTimeout(t time.Duration) *ClientOptions {
-	o.ConnectTimeout = t
-	return o
+func WithConnectTimeout(t time.Duration) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetConnectTimeout(t)
+	}
 }
 
-// SetMaxReconnectInterval sets the maximum time that will be waited between reconnection attempts
+// WithMaxReconnectInterval sets the maximum time that will be waited between reconnection attempts
 // when connection is lost
-func (o *ClientOptions) SetMaxReconnectInterval(t time.Duration) *ClientOptions {
-	o.MaxReconnectInterval = t
-	return o
+func WithMaxReconnectInterval(t time.Duration) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetMaxReconnectInterval(t)
+	}
 }
 
-// SetAutoReconnect sets whether the automatic reconnection logic should be used
+// WithAutoReconnect sets whether the automatic reconnection logic should be used
 // when the connection is lost, even if disabled the ConnectionLostHandler is still
 // called
-func (o *ClientOptions) SetAutoReconnect(a bool) *ClientOptions {
-	o.AutoReconnect = a
-	return o
+func WithAutoReconnect(a bool) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetAutoReconnect(a)
+	}
 }
 
-// SetOnPresenceHandler sets the OnPresenceHandler that will be called when a presence event is received.
-func (o *ClientOptions) SetOnPresenceHandler(handler OnPresenceHandler) *ClientOptions {
-	o.OnPresence = handler
-	return o
-}
-
-// SetOnKeyGenHandler sets the OnKeyGenHandler that will be called when a key generation response is received.
-func (o *ClientOptions) SetOnKeyGenHandler(handler OnKeyGenHandler) *ClientOptions {
-	o.OnKeyGen = handler
-	return o
-}
-
-// SetOnLinkHandler sets the SetOnLinkHandler that will be called when a link creation response is received.
-func (o *ClientOptions) SetOnLinkHandler(handler OnLinkHandler) *ClientOptions {
-	o.OnLink = handler
-	return o
-}
-
-// Option represents a key/value pair that can be supplied to the publish/subscribe or unsubscribe
+// option represents a key/value pair that can be supplied to the publish/subscribe or unsubscribe
 // methods and provide ways to configure the operation.
-type Option struct {
-	Key   string
-	Value string
+type option string
+
+const (
+	withRetain = option("+r")
+	withQos0   = option("+0")
+	withQos1   = option("+1")
+)
+
+// String converts the option to a string.
+func (o option) String() string {
+	return string(o)
 }
 
-// Makes a topic name from the key/channel pair
-func formatTopic(key string, channel string, options []Option) string {
-	// Clean the key
-	key = strings.TrimPrefix(key, "/")
-	key = strings.TrimSuffix(key, "/")
+// WithoutEcho constructs an option which disables self-receiving messages if subscribed to a channel.
+func WithoutEcho() Option {
+	return option("me=0")
+}
 
-	// Clean the channel name
-	channel = strings.TrimPrefix(channel, "/")
-	channel = strings.TrimSuffix(channel, "/")
+// WithTTL constructs an option which can be used during publish requests to set a Time-To-Live.
+func WithTTL(seconds int) Option {
+	return option("ttl=" + strconv.Itoa(seconds))
+}
 
-	// Add the options
-	opts := ""
-	if options != nil && len(options) > 0 {
-		opts += "?"
-		for i, option := range options {
-			opts += option.Key + "=" + option.Value
-			if i+1 < len(options) {
-				opts += "&"
-			}
-		}
-	}
+// WithLast constructs an option which can be used during subscribe requests to retrieve a message history.
+func WithLast(messages int) Option {
+	return option("last=" + strconv.Itoa(messages))
+}
 
-	// Concatenate
-	if len(key) == 0 {
-		return fmt.Sprintf("%s/%s", channel, opts)
-	}
+// WithRetain constructs an option which sets the message 'retain' flag to true.
+func WithRetain() Option {
+	return withRetain
+}
 
-	return fmt.Sprintf("%s/%s/%s", key, channel, opts)
+// WithAtMostOnce instructs to publish at most once (MQTT QoS 0).
+func WithAtMostOnce() Option {
+	return withQos0
+}
+
+// WithAtLeastOnce instructs to publish at least once (MQTT QoS 1).
+func WithAtLeastOnce() Option {
+	return withQos1
 }

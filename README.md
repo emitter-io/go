@@ -15,37 +15,46 @@ Then, you can use the functions exposed by `Emitter` type - they are simple meth
 
 ```go
 func main() {
-	// Create the options with default values
-	o := emitter.NewClientOptions()
 
-	// Set the message handler
-	o.SetOnMessageHandler(func(client emitter.Emitter, msg emitter.Message) {
-		fmt.Printf("Received message: %s\n", msg.Payload())
+
+	// Create the client and connect to the broker
+	c, _ := emitter.Connect("", func(_ *emitter.Client, msg emitter.Message) {
+		fmt.Printf("[emitter] -> [B] received: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
 	})
 
-	// Set the presence notification handler
-	o.SetOnPresenceHandler(func(_ emitter.Emitter, p emitter.PresenceEvent) {
-		fmt.Printf("Occupancy: %v\n", p.Occupancy)
+	// Set the presence handler
+	c.OnPresence(func(_ *emitter.Client, ev emitter.PresenceEvent) {
+		fmt.Printf("[emitter] -> [B] presence event: %d subscriber(s) at topic: '%s'\n", len(ev.Who), ev.Channel)
 	})
 
-	// Create a new emitter client and connect to the broker
-	c := emitter.NewClient(o)
-	sToken := c.Connect()
-	if sToken.Wait() && sToken.Error() != nil {
-		panic("Error on Client.Connect(): " + sToken.Error().Error())
-	}
+	fmt.Println("[emitter] <- [B] querying own name")
+	id := c.ID()
+	fmt.Println("[emitter] -> [B] my name is " + id)
 
-	// Subscribe to the presence demo channel
-	c.Subscribe("X4-nUeHjiAygHMdN8wst82S3c2KcCMn7", "presence-demo/1")
-
-	// Publish to the channel
-	c.Publish("X4-nUeHjiAygHMdN8wst82S3c2KcCMn7", "presence-demo/1", "hello")
+	// Subscribe to sdk-integration-test channel
+	fmt.Println("[emitter] <- [B] subscribing to 'sdk-integration-test/'")
+	c.Subscribe(key, "sdk-integration-test/", func(_ *emitter.Client, msg emitter.Message) {
+		fmt.Printf("[emitter] -> [B] received on specific handler: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
+	})
 
 	// Ask for presence
-	r := emitter.NewPresenceRequest()
-	r.Key = "X4-nUeHjiAygHMdN8wst82S3c2KcCMn7"
-	r.Channel = "presence-demo/1"
-	c.Presence(r)
+	fmt.Println("[emitter] <- [B] asking for presence on 'sdk-integration-test/'")
+	c.Presence(key, "sdk-integration-test/", true, false)
+
+	// Publish to the channel
+	fmt.Println("[emitter] <- [B] publishing to 'sdk-integration-test/'")
+	c.Publish(key, "sdk-integration-test/", "hello")
+
+	// Ask to create a private link
+	fmt.Println("[emitter] <- [B] creating a private link")
+	link, _ := c.CreatePrivateLink(key, "sdk-integration-test/", "1", func(_ *emitter.Client, msg emitter.Message) {
+		fmt.Printf("[emitter] -> [B] received from private link: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
+	})
+	fmt.Println("[emitter] -> [B] received link " + link.Channel)
+
+	// Publish to the private link
+	fmt.Println("[emitter] <- [B] publishing to private link")
+	c.PublishWithLink("1", "hi from private link")
 }
 ```
 
