@@ -8,7 +8,7 @@ This library provides a nicer MQTT interface fine-tuned and extended with specif
 This library aims to be as simple and straighforward as possible. First thing you'll need to do is to import it.
 
 ```go
-import emitter "github.com/emitter-io/go"
+import emitter "github.com/emitter-io/go/v2"
 ```
 
 Then, you can use the functions exposed by `Emitter` type - they are simple methods such as `Connect`, `Publish`, `Subscribe`, `Unsubscribe`, `GenerateKey`, `Presence`, etc. See the example below.
@@ -63,14 +63,14 @@ func main() {
 This client, similarly to the Eclipse Paho client is designed to work with the standard Go tools, so installation is as easy as:
 
 ```go
-go get -u github.com/emitter-io/go
+go get -u github.com/emitter-io/go/v2
 ```
 
 For usage, please refer to the `sample` sub-folder in this repository which provides a sample application on how to use the API.
 
 ## API Documentation
 
-The full API documentation of exported members is available on [godoc.org/github.com/emitter-io/go](https://godoc.org/github.com/emitter-io/go).
+The full API documentation of exported members is available on [godoc.org/github.com/emitter-io/go/v2](https://godoc.org/github.com/emitter-io/go/v2).
 
 ## License
 
