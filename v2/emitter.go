@@ -259,7 +259,8 @@ func (c *Client) PublishWithTTL(key string, channel string, payload interface{},
 
 // PublishWithRetain publishes a message with a retain flag set to true
 func (c *Client) PublishWithRetain(key string, channel string, payload interface{}, options ...Option) error {
-	return c.Publish(key, channel, payload, WithRetain())
+	options = append(options, WithRetain())
+	return c.Publish(key, channel, payload, options...)
 }
 
 // PublishWithLink publishes a message with a specified link name instead of a channel key.
