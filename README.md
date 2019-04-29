@@ -13,6 +13,8 @@ import emitter "github.com/emitter-io/go/v2"
 
 Then, you can use the functions exposed by `Emitter` type - they are simple methods such as `Connect`, `Publish`, `Subscribe`, `Unsubscribe`, `GenerateKey`, `Presence`, etc. See the example below.
 
+> Note: If there is a network interruption or some other disconnection, the client will automatically reconnect, but *it will not automatically resubscribe to your channels*.  See the [Maintaining a Channel Subscription](#maintaining-a-channel-subscription) section below!
+
 ### General Example
 ```go
 func main() {
