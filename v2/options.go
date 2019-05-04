@@ -149,3 +149,22 @@ func WithAtMostOnce() Option {
 func WithAtLeastOnce() Option {
 	return withQos1
 }
+
+func getUTCTimestamp(input time.Time) int64 {
+	t := input
+	if zone, _ := t.Zone(); zone != "UTC" {
+		loc, _ := time.LoadLocation("UTC")
+		t = t.In(loc)
+	}
+	return t.Unix()
+}
+
+// WithFrom request messages from a point in time.
+func WithFrom(from time.Time) Option {
+	return option("from=" + strconv.FormatInt(getUTCTimestamp(from), 10))
+}
+
+// WithUntil request messages until a point in time.
+func WithUntil(until time.Time) Option {
+	return option("from=" + strconv.FormatInt(getUTCTimestamp(until), 10))
+}
