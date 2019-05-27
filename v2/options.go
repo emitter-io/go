@@ -166,5 +166,5 @@ func WithFrom(from time.Time) Option {
 
 // WithUntil request messages until a point in time.
 func WithUntil(until time.Time) Option {
-	return option("from=" + strconv.FormatInt(getUTCTimestamp(until), 10))
+	return option("until=" + strconv.FormatInt(getUTCTimestamp(until), 10))
 }
