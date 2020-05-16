@@ -5,6 +5,7 @@ package emitter
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 )
 
@@ -88,14 +89,20 @@ type presenceRequest struct {
 	Changes bool   `json:"changes"`
 }
 
+// presenceMessage represents a presence message, for partial unmarshal
+type presenceMessage struct {
+	Request uint16          `json:"req,omitempty"`
+	Event   string          `json:"event"`
+	Channel string          `json:"channel"`
+	Time    int             `json:"time"`
+	Who     json.RawMessage `json:"who"`
+}
+
 // PresenceEvent  represents a response from emitter broker which contains
 // presence state or a join/leave notification.
 type PresenceEvent struct {
-	Request uint16         `json:"req,omitempty"`
-	Event   string         `json:"event"`
-	Channel string         `json:"channel"`
-	Time    int            `json:"time"`
-	Who     []PresenceInfo `json:"who"`
+	presenceMessage
+	Who []PresenceInfo
 }
 
 // RequestID returns the request ID for the response.

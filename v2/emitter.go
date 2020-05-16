@@ -154,10 +154,24 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 
 	// Dispatch presence handler
 	case c.presence != nil && strings.HasPrefix(m.Topic(), "emitter/presence/"):
-		var response PresenceEvent
-		if err := json.Unmarshal(m.Payload(), &response); err == nil {
-			c.presence(c, response)
+		var msg presenceMessage
+		if err := json.Unmarshal(m.Payload(), &msg); err != nil {
+			log.Println("emitter:", err.Error())
 		}
+
+		var r PresenceEvent
+		if msg.Event == "status" {
+			if err := json.Unmarshal([]byte(msg.Who), &r.Who); err != nil {
+				log.Println("emitter:", err.Error())
+			}
+		} else {
+			r.Who[0] = PresenceInfo{}
+			if err := json.Unmarshal([]byte(msg.Who), &r.Who[0]); err != nil {
+				log.Println("emitter:", err.Error())
+			}
+		}
+
+		c.presence(c, r)
 
 	// Dispatch errors handler
 	case strings.HasPrefix(m.Topic(), "emitter/error/"):
