@@ -137,9 +137,9 @@ func (c *Client) OnError(handler ErrorHandler) {
 
 // onMessage occurs when MQTT client receives a message
 func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
-	if c.message != nil && !strings.HasPrefix(m.Topic(), "emitter/") {
+	if !strings.HasPrefix(m.Topic(), "emitter/") {
 		handlers := c.handlers.Lookup(m.Topic())
-		if len(handlers) == 0 { // Invoke the default message handler
+		if len(handlers) == 0 && c.message != nil { // Invoke the default message handler
 			c.message(c, m)
 		}
 
