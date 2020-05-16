@@ -159,13 +159,13 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 			log.Println("emitter:", err.Error())
 		}
 
-		var r PresenceEvent
+		r := PresenceEvent{msg, make([]PresenceInfo, 0)}
 		if msg.Event == "status" {
 			if err := json.Unmarshal([]byte(msg.Who), &r.Who); err != nil {
 				log.Println("emitter:", err.Error())
 			}
 		} else {
-			r.Who[0] = PresenceInfo{}
+			r.Who = append(r.Who, PresenceInfo{})
 			if err := json.Unmarshal([]byte(msg.Who), &r.Who[0]); err != nil {
 				log.Println("emitter:", err.Error())
 			}

@@ -121,3 +121,24 @@ func TestFormatShare(t *testing.T) {
 	topic := formatShare("/key/", "share1", "/a/b/c/", []Option{WithoutEcho()})
 	assert.Equal(t, "key/$share/share1/a/b/c/?me=0", topic)
 }
+
+func TestPresence(t *testing.T) {
+	c := NewClient()
+
+	var events []PresenceEvent
+	c.OnPresence(func(_ *Client, ev PresenceEvent) {
+		events = append(events, ev)
+	})
+
+	c.onMessage(nil, &message{
+		topic:   "emitter/presence/",
+		payload: ` {"time":1589626821,"event":"status","channel":"retain-demo/","who":[{"id":"B"}, {"id":"C"}]}`,
+	})
+
+	c.onMessage(nil, &message{
+		topic:   "emitter/presence/",
+		payload: ` {"time":1589626821,"event":"subscribe","channel":"retain-demo/","who":{"id":"A"}}`,
+	})
+
+	assert.Equal(t, 2, len(events))
+}
