@@ -123,7 +123,6 @@ type linkRequest struct {
 	Key       string `json:"key"`       // The key for the channel.
 	Channel   string `json:"channel"`   // The channel name for the shortcut.
 	Subscribe bool   `json:"subscribe"` // Specifies whether the broker should auto-subscribe.
-	Private   bool   `json:"private"`   // Specifies whether the broker should generate a private link.
 }
 
 // meResponse represents information about the client.

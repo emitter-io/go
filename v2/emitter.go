@@ -360,31 +360,6 @@ func (c *Client) GenerateKey(key, channel, permissions string, ttl int) (string,
 	return "", ErrUnmarshal
 }
 
-// CreatePrivateLink sends a request to create a private link.
-func (c *Client) CreatePrivateLink(key, channel, name string, optionalHandler MessageHandler, options ...Option) (*Link, error) {
-	resp, err := c.request("link", &linkRequest{
-		Name:      name,
-		Key:       key,
-		Channel:   formatTopic("", channel, options),
-		Subscribe: optionalHandler != nil,
-		Private:   true,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Cast the response and return it
-	if result, ok := resp.(*Link); ok {
-		if optionalHandler != nil {
-			c.handlers.AddHandler(result.Channel, optionalHandler)
-		}
-
-		return result, nil
-	}
-
-	return nil, ErrUnmarshal
-}
-
 // CreateLink sends a request to create a default link.
 func (c *Client) CreateLink(key, channel, name string, optionalHandler MessageHandler, options ...Option) (*Link, error) {
 	resp, err := c.request("link", &linkRequest{
@@ -392,7 +367,6 @@ func (c *Client) CreateLink(key, channel, name string, optionalHandler MessageHa
 		Key:       key,
 		Channel:   formatTopic("", channel, options),
 		Subscribe: optionalHandler != nil,
-		Private:   false,
 	})
 
 	if err != nil {
