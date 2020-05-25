@@ -56,6 +56,8 @@ func (e *Error) RequestID() uint16 {
 	return e.Request
 }
 
+// ------------------------------------------------------------------------------------
+
 // KeyGenRequest represents a request that can be sent to emitter broker
 // in order to generate a new channel key.
 type keygenRequest struct {
@@ -79,6 +81,8 @@ type keyGenResponse struct {
 func (r *keyGenResponse) RequestID() uint16 {
 	return r.Request
 }
+
+// ------------------------------------------------------------------------------------
 
 // PresenceRequest represents a request that can be sent to emitter broker
 // in order to request presence information.
@@ -117,13 +121,7 @@ type PresenceInfo struct {
 	Username string `json:"username"`
 }
 
-// linkRequest represents a request to create a link.
-type linkRequest struct {
-	Name      string `json:"name"`      // The name of the shortcut, max 2 characters.
-	Key       string `json:"key"`       // The key for the channel.
-	Channel   string `json:"channel"`   // The channel name for the shortcut.
-	Subscribe bool   `json:"subscribe"` // Specifies whether the broker should auto-subscribe.
-}
+// ------------------------------------------------------------------------------------
 
 // meResponse represents information about the client.
 type meResponse struct {
@@ -137,6 +135,16 @@ func (r *meResponse) RequestID() uint16 {
 	return r.Request
 }
 
+// ------------------------------------------------------------------------------------
+
+// linkRequest represents a request to create a link.
+type linkRequest struct {
+	Name      string `json:"name"`      // The name of the shortcut, max 2 characters.
+	Key       string `json:"key"`       // The key for the channel.
+	Channel   string `json:"channel"`   // The channel name for the shortcut.
+	Subscribe bool   `json:"subscribe"` // Specifies whether the broker should auto-subscribe.
+}
+
 // Link represents a response for the link creation.
 type Link struct {
 	Request uint16 `json:"req,omitempty"`
@@ -148,6 +156,32 @@ type Link struct {
 func (r *Link) RequestID() uint16 {
 	return r.Request
 }
+
+// ------------------------------------------------------------------------------------
+
+// KeyBanRequest represents a request that can be sent to emitter broker
+// in order to ban/blacklist a channel key.
+type keybanRequest struct {
+	Secret string `json:"secret"` // The master key to use.
+	Target string `json:"target"` // The target key to ban.
+	Banned bool   `json:"banned"` // Whether the target should be banned or not.
+}
+
+// keyBanResponse  represents a response from emitter broker which contains
+// the response to the key ban request.
+type keyBanResponse struct {
+	Request      uint16 `json:"req,omitempty"`
+	Status       int    `json:"status"` // The status of the response
+	Banned       bool   `json:"banned"` // Whether the target should be banned or not.
+	ErrorMessage string `json:"message"`
+}
+
+// RequestID returns the request ID for the response.
+func (r *keyBanResponse) RequestID() uint16 {
+	return r.Request
+}
+
+// ------------------------------------------------------------------------------------
 
 // uuid generates a simple UUID
 func uuid() string {

@@ -181,6 +181,10 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 	case strings.HasPrefix(m.Topic(), "emitter/keygen/"):
 		c.onResponse(m, new(keyGenResponse))
 
+	// Dispatch keyban handler
+	case strings.HasPrefix(m.Topic(), "emitter/keyban/"):
+		c.onResponse(m, new(keyBanResponse))
+
 	// Dispatch link handler
 	case strings.HasPrefix(m.Topic(), "emitter/link/"):
 		c.onResponse(m, new(Link))
@@ -358,6 +362,42 @@ func (c *Client) GenerateKey(key, channel, permissions string, ttl int) (string,
 		return result.Key, nil
 	}
 	return "", ErrUnmarshal
+}
+
+// BlockKey sends a request to block a key.
+func (c *Client) BlockKey(secretKey, targetKey string) (bool, error) {
+	resp, err := c.request("keyban", &keybanRequest{
+		Secret: secretKey,
+		Target: targetKey,
+		Banned: true,
+	})
+	if err != nil {
+		return false, err
+	}
+
+	// Cast the response and return it
+	if result, ok := resp.(*keyBanResponse); ok {
+		return result.Banned == true, nil
+	}
+	return false, ErrUnmarshal
+}
+
+// AllowKey sends a request to allow a previously blocked key.
+func (c *Client) AllowKey(secretKey, targetKey string) (bool, error) {
+	resp, err := c.request("keyban", &keybanRequest{
+		Secret: secretKey,
+		Target: targetKey,
+		Banned: false,
+	})
+	if err != nil {
+		return false, err
+	}
+
+	// Cast the response and return it
+	if result, ok := resp.(*keyBanResponse); ok {
+		return result.Banned == false, nil
+	}
+	return false, ErrUnmarshal
 }
 
 // CreateLink sends a request to create a default link.
