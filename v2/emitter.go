@@ -28,7 +28,7 @@ type Message interface {
 
 // Client represents an emitter client which holds the connection.
 type Client struct {
-	sync.Mutex
+	sync.RWMutex
 	guid       string              // Emiter's client ID
 	conn       mqtt.Client         // MQTT client
 	opts       *mqtt.ClientOptions // MQTT options
@@ -149,6 +149,11 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 		}
 		return
 	}
+
+	// `onError` and `onResponse` read the callbacks store when calling
+	// the `NotifyResponse`. See the comments in the `request` function.
+	c.RLock()
+	defer c.RUnlock()
 
 	switch {
 
@@ -431,9 +436,13 @@ func (c *Client) request(operation string, req interface{}) (Response, error) {
 		panic("unable to encode the request")
 	}
 
-	// publish and wait for an error, response or puback
+	// Publish and wait for an error, response or puback
+	// The client is locked until the callback is stored, so the response
+	// cannot arrive before and be lost
+	c.Lock()
 	token := c.conn.Publish(fmt.Sprintf("emitter/%s/", operation), 1, false, request)
 	resp := <-c.store.PutCallback(token.(*mqtt.PublishToken).MessageID())
+	c.Unlock()
 	if err := c.do(token); err != nil {
 		return nil, err
 	}
