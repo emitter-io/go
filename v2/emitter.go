@@ -199,6 +199,7 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 		c.onResponse(m, new(meResponse))
 
 	default:
+
 	}
 }
 
@@ -441,12 +442,12 @@ func (c *Client) request(operation string, req interface{}) (Response, error) {
 	// cannot arrive before and be lost
 	c.Lock()
 	token := c.conn.Publish(fmt.Sprintf("emitter/%s/", operation), 1, false, request)
-	resp := <-c.store.PutCallback(token.(*mqtt.PublishToken).MessageID())
+	respChan := c.store.PutCallback(token.(*mqtt.PublishToken).MessageID())
 	c.Unlock()
 	if err := c.do(token); err != nil {
 		return nil, err
 	}
-
+	resp := <-respChan
 	if err, ok := resp.(error); ok {
 		return nil, err
 	}
