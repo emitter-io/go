@@ -490,6 +490,8 @@ func getHeader(options []Option) (qos byte, retain bool) {
 			qos = 0
 		case withQos1:
 			qos = 1
+		case withQos2:
+			qos = 2
 		}
 	}
 	return

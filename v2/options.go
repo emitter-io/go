@@ -105,6 +105,18 @@ func WithAutoReconnect(a bool) func(*Client) {
 	}
 }
 
+// WithCleanSession will set the "clean session" flag in the connect message
+// when this client connects to an MQTT broker. By setting this flag, you are
+// indicating that no messages saved by the broker for this client should be
+// delivered. Any messages that were going to be sent by this client before
+// diconnecting previously but didn't will not be sent upon connecting to the
+// broker.
+func WithCleanSession(clean bool) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetCleanSession(clean)
+	}
+}
+
 // option represents a key/value pair that can be supplied to the publish/subscribe or unsubscribe
 // methods and provide ways to configure the operation.
 type option string
@@ -113,6 +125,7 @@ const (
 	withRetain = option("+r")
 	withQos0   = option("+0")
 	withQos1   = option("+1")
+	withQos2   = option("+2")
 )
 
 // String converts the option to a string.
