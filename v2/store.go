@@ -40,6 +40,10 @@ func (store *store) Put(key string, message packets.ControlPacket) {
 	store.Lock()
 	defer store.Unlock()
 
+	if store.messages == nil {
+		store.messages = make(map[string]*packet)
+	}
+
 	store.messages[key] = &packet{
 		ControlPacket: message,
 	}

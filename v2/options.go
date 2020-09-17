@@ -163,6 +163,11 @@ func WithAtLeastOnce() Option {
 	return withQos1
 }
 
+// WithAtOnlyOnce instructs to publish at only once (MQTT QoS 2).
+func WithAtOnlyOnce() Option {
+	return withQos2
+}
+
 func getUTCTimestamp(input time.Time) int64 {
 	t := input
 	if zone, _ := t.Zone(); zone != "UTC" {
