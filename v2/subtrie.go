@@ -46,15 +46,30 @@ func (n *node) orphan() {
 type trie struct {
 	sync.RWMutex
 	root *node // The root node of the tree.
+	lookup func(query []string, result *[]MessageHandler, node *node)
 }
 
-// newTrie creates a new matcher for the subscriptions.
+// newTrie creates a new trie without a lookup function.
 func newTrie() *trie {
 	return &trie{
 		root: &node{
 			children: make(map[string]*node),
 		},
 	}
+}
+
+// NewTrie creates a new subscriptions matcher using standard emitter strategy.
+func NewTrie() *trie {
+	t := newTrie()
+	t.lookup = t.lookupEmitter
+	return t
+}
+
+// NewTrieMQTT creates a new subscriptions matcher using standard MQTT strategy.
+func NewTrieMQTT() *trie {
+	t := newTrie()
+	t.lookup = t.lookupMqtt
+	return t
 }
 
 // AddHandler adds a message handler to a topic.
@@ -120,7 +135,7 @@ func (t *trie) Lookup(topic string) []MessageHandler {
 	return result
 }
 
-func (t *trie) lookup(query []string, result *[]MessageHandler, node *node) {
+func (t *trie) lookupEmitter(query []string, result *[]MessageHandler, node *node) {
 
 	// Add routes from the current branch
 	for _, route := range node.routes {
@@ -132,12 +147,41 @@ func (t *trie) lookup(query []string, result *[]MessageHandler, node *node) {
 
 		// Go through the exact match branch
 		if n, ok := node.children[query[0]]; ok {
-			t.lookup(query[1:], result, n)
+			t.lookupEmitter(query[1:], result, n)
 		}
 
 		// Go through wildcard match branch
 		if n, ok := node.children["+"]; ok {
-			t.lookup(query[1:], result, n)
+			t.lookupEmitter(query[1:], result, n)
+		}
+	}
+}
+
+func (t *trie) lookupMqtt(query []string, result *[]MessageHandler, node *node) {
+	if len(query) == 0 {
+		// Add routes from the current branch
+		for _, route := range node.routes {
+			*result = append(*result, route.Action)
+		}
+	}
+
+	// If we're not yet done, continue
+	if len(query) > 0 {
+		// Go through the exact match branch
+		if n, ok := node.children[query[0]]; ok {
+			t.lookupMqtt(query[1:], result, n)
+		}
+
+		// Go through wildcard match branch
+		if n, ok := node.children["+"]; ok {
+			t.lookupMqtt(query[1:], result, n)
+		}
+
+		// Go through wildcard match branch
+		if n, ok := node.children["#"]; ok {
+			for _, route := range n.routes {
+				*result = append(*result, route.Action)
+			}
 		}
 	}
 }
