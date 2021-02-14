@@ -12,7 +12,7 @@ func TestRoute(t *testing.T) {
 }
 
 func TestTrieMatch(t *testing.T) {
-	m := newTrie()
+	m := NewTrie()
 	testPopulateWithStrings(m, []string{
 		"a/",
 		"a/b/c/",

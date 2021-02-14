@@ -66,7 +66,7 @@ func NewClient(options ...func(*Client)) *Client {
 		opts:     mqtt.NewClientOptions(),
 		timeout:  60 * time.Second,
 		store:    new(store),
-		handlers: newTrie(),
+		handlers: NewTrie(),
 	}
 
 	// Set handlers
@@ -301,8 +301,11 @@ func (c *Client) Subscribe(key string, channel string, optionalHandler MessageHa
 		c.handlers.AddHandler(channel, optionalHandler)
 	}
 
+	// https://github.com/eclipse/paho.mqtt.golang/blob/master/topic.go#L78
+	topic := strings.ReplaceAll(formatTopic(key, channel, options), "#/", "#")
+
 	// Issue subscribe
-	token := c.conn.Subscribe(formatTopic(key, channel, options), 0, nil)
+	token := c.conn.Subscribe(topic, 0, nil)
 	return c.do(token)
 }
 

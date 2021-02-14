@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+// WithMatcher If "mqtt", then topic matching would follow MQTT specification.
+func WithMatcher(matcher string) func(*Client) {
+	return func(c *Client) {
+		if "mqtt" == matcher {
+			c.handlers = NewTrieMQTT()
+		}
+	}
+}
+
 // WithBrokers configures broker URIs to connect to. The format should be scheme://host:port
 // Where "scheme" is one of "tcp", "ssl", or "ws", "host" is the ip-address (or hostname)
 // and "port" is the port on which the broker is accepting connections.
