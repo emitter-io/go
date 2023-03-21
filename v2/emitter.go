@@ -355,7 +355,7 @@ func (c *Client) Presence(key, channel string, status, changes bool) error {
 }
 
 // GenerateKey sends a key generation request to the broker
-func (c *Client) GenerateKey(key, channel, permissions string, ttl int) (string, error) {
+func (c *Client) GenerateKey(key, channel, permissions string, ttl int) (string, string, error) {
 	resp, err := c.request("keygen", &keygenRequest{
 		Key:     key,
 		Channel: channel,
@@ -363,14 +363,14 @@ func (c *Client) GenerateKey(key, channel, permissions string, ttl int) (string,
 		TTL:     ttl,
 	})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	// Cast the response and return it
 	if result, ok := resp.(*keyGenResponse); ok {
-		return result.Key, nil
+		return result.Key, result.Channel, nil
 	}
-	return "", ErrUnmarshal
+	return "", "", ErrUnmarshal
 }
 
 // BlockKey sends a request to block a key.
