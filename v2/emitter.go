@@ -433,6 +433,22 @@ func (c *Client) CreateLink(key, channel, name string, optionalHandler MessageHa
 	return nil, ErrUnmarshal
 }
 
+// TODO study whetehr from until and limit should all three be options? just limit?
+func (c *Client) History(key, channel string, from, until time.Time, limit int) (<-chan Message, <-chan bool, error) {
+	message := make(chan Message)
+	done := make(chan bool)
+
+	//request := &historyRequest{}
+
+	go func() {
+		defer close(message)
+		defer close(done)
+
+	}()
+
+	return message, done, nil
+}
+
 // Makes a request
 func (c *Client) request(operation string, req interface{}) (Response, error) {
 	request, err := json.Marshal(req)

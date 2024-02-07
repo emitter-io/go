@@ -183,6 +183,27 @@ func (r *keyBanResponse) RequestID() uint16 {
 
 // ------------------------------------------------------------------------------------
 
+type MessageID []byte
+
+type historyRequest struct {
+	Key         string    `json:"key"`
+	Channel     string    `json:"channel"`
+	StartFromID MessageID `json:"startFromID"`
+	//From int `json:"from"`
+}
+
+type historyMessage struct {
+	ID      MessageID `json:"id"`
+	Topic   string    `json:"topic"`
+	Payload string    `json:"payload"`
+}
+
+type historyResponse struct {
+	Messages []historyMessage `json:"messages"`
+}
+
+// ------------------------------------------------------------------------------------
+
 // uuid generates a simple UUID
 func uuid() string {
 	b := make([]byte, 16)
