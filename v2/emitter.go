@@ -198,6 +198,10 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 	case strings.HasPrefix(m.Topic(), "emitter/me/"):
 		c.onResponse(m, new(meResponse))
 
+	// Dispatch history handler
+	case strings.HasPrefix(m.Topic(), "emitter/history/"):
+		c.onResponse(m, new(historyResponse))
+
 	default:
 
 	}
@@ -431,6 +435,57 @@ func (c *Client) CreateLink(key, channel, name string, optionalHandler MessageHa
 		return result, nil
 	}
 	return nil, ErrUnmarshal
+}
+
+func (c *Client) History(key, channel string, from, until int64, limit int) func(func(m HistoryMessage, err error) bool) {
+	return func(yield func(m HistoryMessage, err error) bool) {
+		{
+			var startFromID MessageID = nil
+			nMsgRetrieved := 0
+
+			for {
+				req := &historyRequest{
+					// As an MQTT message size is limited, we need to paginate the history request.
+					// If we didn't receive all messages (limit) we request limit - nMsgRetrieved messages.
+					// We also set the startFromID to the message ID of the last message we received to
+					// continue retrieving them from this one.
+					Channel:     formatTopic(key, channel, []Option{WithLast(limit - nMsgRetrieved), WithFrom(time.Unix(from, 0)), WithUntil(time.Unix(until, 0))}),
+					StartFromID: startFromID,
+				}
+
+				resp, err := c.request("history", req)
+				if err != nil {
+					yield(HistoryMessage{}, err)
+				}
+
+				// Cast the response.
+				result, _ := resp.(*historyResponse)
+
+				// If no messages left in the history then return.
+				if len(result.Messages) == 0 {
+					return
+				}
+
+				// Yield each message returned by the history request.
+				for i := 0; i <= len(result.Messages)-1; i++ {
+					if !yield(result.Messages[i], nil) {
+						return
+					}
+				}
+
+				nMsgRetrieved += len(result.Messages)
+				// If we received the number of messages requested then return.
+				if nMsgRetrieved >= limit {
+					return
+				}
+
+				// As an MQTT message size is limited, we need to paginate the history request.
+				// In case we have more messages to retrieve, set the startFromID to the message ID
+				// of the last message we received to continue retrieving them from this one.
+				startFromID = result.Messages[0].ID
+			}
+		}
+	}
 }
 
 // Makes a request

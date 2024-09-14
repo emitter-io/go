@@ -20,7 +20,7 @@ func clientA(t *testing.T) {
 	const key = "RUvY5GTEOUmIqFs_zfpJcfTqBUIKBhfs" // read on sdk-integration-test/#/
 
 	// Create the client and connect to the broker
-	c, _ := Connect("", func(_ *Client, msg Message) {
+	c, _ := Connect("tcp://localhost:8080", func(_ *Client, msg Message) {
 		fmt.Printf("[emitter] -> [A] received: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
 	})
 
@@ -34,7 +34,7 @@ func clientB(t *testing.T) {
 	const key = "pGrtRRL6RrjAdExSArkMzBZOoWr2eB3L" // everything on sdk-integration-test/
 
 	// Create the client and connect to the broker
-	c, _ := Connect("", func(_ *Client, msg Message) {
+	c, _ := Connect("tcp://localhost:8080", func(_ *Client, msg Message) {
 		fmt.Printf("[emitter] -> [B] received: '%s' topic: '%s'\n", msg.Payload(), msg.Topic())
 	})
 
@@ -130,3 +130,21 @@ func TestPresence(t *testing.T) {
 
 	assert.Equal(t, 2, len(events))
 }
+
+/*
+func TestHistory(t *testing.T) {
+	c, err := Connect("tcp://localhost:8080", nil)
+	assert.NoError(t, err)
+
+	for messageHistory, err := range c.History("JN8kaVOZQtG-G6QHnbFzcI-uyS_M3L5q", "test/", 1685608812, 1757293928, 5) {
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+		fmt.Println(messageHistory)
+		if messageHistory.Payload == "Hello World3" {
+			break
+		}
+	}
+
+}*/
