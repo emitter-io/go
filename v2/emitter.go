@@ -150,15 +150,8 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 		return
 	}
 
-	// `onError` and `onResponse` read the callbacks store when calling
-	// the `NotifyResponse`. See the comments in the `request` function.
-	c.RLock()
-	defer c.RUnlock()
-
-	switch {
-
 	// Dispatch presence handler
-	case c.presence != nil && strings.HasPrefix(m.Topic(), "emitter/presence/"):
+	if c.presence != nil && strings.HasPrefix(m.Topic(), "emitter/presence/") {
 		var msg presenceMessage
 		if err := json.Unmarshal(m.Payload(), &msg); err != nil {
 			log.Println("emitter:", err.Error())
@@ -177,6 +170,15 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 		}
 
 		c.presence(c, r)
+		return
+	}
+
+	// `onError` and `onResponse` read the callbacks store when calling
+	// the `NotifyResponse`. See the comments in the `request` function.
+	c.RLock()
+	defer c.RUnlock()
+
+	switch {
 
 	// Dispatch errors handler
 	case strings.HasPrefix(m.Topic(), "emitter/error/"):
