@@ -150,29 +150,6 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 		return
 	}
 
-	// Dispatch presence handler
-	if c.presence != nil && strings.HasPrefix(m.Topic(), "emitter/presence/") {
-		var msg presenceMessage
-		if err := json.Unmarshal(m.Payload(), &msg); err != nil {
-			log.Println("emitter:", err.Error())
-		}
-
-		r := PresenceEvent{msg, make([]PresenceInfo, 0)}
-		if msg.Event == "status" {
-			if err := json.Unmarshal([]byte(msg.Who), &r.Who); err != nil {
-				log.Println("emitter:", err.Error())
-			}
-		} else {
-			r.Who = append(r.Who, PresenceInfo{})
-			if err := json.Unmarshal([]byte(msg.Who), &r.Who[0]); err != nil {
-				log.Println("emitter:", err.Error())
-			}
-		}
-
-		c.presence(c, r)
-		return
-	}
-
 	// `onError` and `onResponse` read the callbacks store when calling
 	// the `NotifyResponse`. See the comments in the `request` function.
 	c.RLock()
@@ -184,7 +161,37 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 	case strings.HasPrefix(m.Topic(), "emitter/error/"):
 		c.onError(m)
 
-	// Dispatch keygen handler
+	// Dispatch presence handler
+	case strings.HasPrefix(m.Topic(), "emitter/presence/"):
+		var presenceResp presenceResponse
+		if err := json.Unmarshal(m.Payload(), &presenceResp); err != nil {
+			log.Println("emitter:", err.Error())
+		}
+
+		// If it's not the "status" response of the Presence RPC but a "change" event, we call the handler
+		// and stop there. We locked the client to for nothing in this case. There is no other choice.
+		r := PresenceEvent{presenceResp, make([]PresenceInfo, 0)}
+		if c.presence != nil && presenceResp.Event != "" && presenceResp.Event != "status" { // If we didn't request a status the Event will be empty.
+			r.Who = append(r.Who, PresenceInfo{})
+			if err := json.Unmarshal([]byte(presenceResp.Who), &r.Who[0]); err != nil {
+				log.Println("emitter:", err.Error())
+			}
+			c.presence(c, r)
+		} else if presenceResp.RequestID() > 0 {
+			// In this case, we have a "status" response of the Presence RPC. And this could be an error.
+			// Check if we've got an error response
+			var errResponse Error
+			if err := json.Unmarshal(m.Payload(), &errResponse); err == nil && errResponse.Error() != "" {
+				c.store.NotifyResponse(errResponse.RequestID(), &errResponse)
+				return
+			}
+
+			if err := json.Unmarshal([]byte(presenceResp.Who), &r.Who); err != nil {
+				log.Println("emitter:", err.Error())
+			}
+			c.store.NotifyResponse(presenceResp.RequestID(), &r)
+		}
+
 	case strings.HasPrefix(m.Topic(), "emitter/keygen/"):
 		c.onResponse(m, new(keyGenResponse))
 
@@ -346,18 +353,23 @@ func (c *Client) Unsubscribe(key string, channel string) error {
 }
 
 // Presence sends a presence request to the broker.
-func (c *Client) Presence(key, channel string, status, changes bool) error {
-	req, err := json.Marshal(&presenceRequest{
+func (c *Client) Presence(key, channel string, status, changes bool) (*PresenceEvent, error) {
+	resp, err := c.request("presence", &presenceRequest{
 		Key:     key,
 		Channel: channel,
 		Status:  status,
 		Changes: changes,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.do(c.conn.Publish("emitter/presence/", 1, false, req))
+	// Cast the response and return it
+	if result, ok := resp.(*PresenceEvent); ok {
+		return result, nil
+	}
+	return nil, ErrUnmarshal
+	//return c.do(c.conn.Publish("emitter/presence/", 1, false, req))
 }
 
 // GenerateKey sends a key generation request to the broker

@@ -93,8 +93,8 @@ type presenceRequest struct {
 	Changes bool   `json:"changes"`
 }
 
-// presenceMessage represents a presence message, for partial unmarshal
-type presenceMessage struct {
+// presenceResponse represents a presence message, for partial unmarshal
+type presenceResponse struct {
 	Request uint16          `json:"req,omitempty"`
 	Event   string          `json:"event"`
 	Channel string          `json:"channel"`
@@ -102,10 +102,15 @@ type presenceMessage struct {
 	Who     json.RawMessage `json:"who"`
 }
 
+// RequestID returns the request ID for the response.
+func (r *presenceResponse) RequestID() uint16 {
+	return r.Request
+}
+
 // PresenceEvent  represents a response from emitter broker which contains
 // presence state or a join/leave notification.
 type PresenceEvent struct {
-	presenceMessage
+	presenceResponse
 	Who []PresenceInfo
 }
 
