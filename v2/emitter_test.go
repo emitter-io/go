@@ -12,12 +12,12 @@ func TestEndToEnd(t *testing.T) {
 	clientA(t)
 	clientB(t)
 
-	// stop after 10 seconds
+	// stop after 1 seconds
 	time.Sleep(1 * time.Second)
 }
 
 func clientA(t *testing.T) {
-	const key = "RUvY5GTEOUmIqFs_zfpJcfTqBUIKBhfs" // read on sdk-integration-test/#/
+	const key = "HMauuTysKrOZPyHc9ANkMfJfeAD_QDgQ" // read on sdk-integration-test/#/
 
 	// Create the client and connect to the broker
 	c, _ := Connect("tcp://localhost:8080", func(_ *Client, msg Message) {
@@ -31,7 +31,7 @@ func clientA(t *testing.T) {
 }
 
 func clientB(t *testing.T) {
-	const key = "pGrtRRL6RrjAdExSArkMzBZOoWr2eB3L" // everything on sdk-integration-test/
+	const key = "HMauuTysKrOZPyHc9ANkMfJfeAD_QDgQ" // everything on sdk-integration-test/
 
 	// Create the client and connect to the broker
 	c, _ := Connect("tcp://localhost:8080", func(_ *Client, msg Message) {
@@ -39,7 +39,7 @@ func clientB(t *testing.T) {
 	})
 
 	c.OnPresence(func(_ *Client, ev PresenceEvent) {
-		fmt.Printf("[emitter] -> [B] presence event: %d subscriber(s) at topic: '%s'\n", len(ev.Who), ev.Channel)
+		fmt.Printf("[emitter] -> [B] presence change event: '%s'. Topic: '%s'. ID: '%s'\n", ev.Event, ev.Channel, ev.Who[0].ID)
 	})
 
 	fmt.Println("[emitter] <- [B] querying own name")
@@ -53,13 +53,22 @@ func clientB(t *testing.T) {
 
 	// Ask for presence
 	fmt.Println("[emitter] <- [B] asking for presence on 'sdk-integration-test/'")
-	err := c.Presence(key, "sdk-integration-test/", true, false)
+	resp, err := c.Presence(key, "sdk-integration-test/", true, true)
 	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	fmt.Printf("[emitter] -> [B] presence status response: %d subscriber(s) at topic: '%s'\n", len(resp.Who), resp.Channel)
 
 	// Publish to the channel
 	fmt.Println("[emitter] <- [B] publishing to 'sdk-integration-test/'")
 	err = c.Publish(key, "sdk-integration-test/", "hello")
 	assert.NoError(t, err)
+
+	// Unsubscribe from the channel
+	fmt.Println("[emitter] <- [B] unsubscribing from 'sdk-integration-test/'")
+	err = c.Unsubscribe(key, "sdk-integration-test/")
+	assert.NoError(t, err)
+
+	time.Sleep(1 * time.Second)
 }
 
 func TestFormatTopic(t *testing.T) {
@@ -120,7 +129,7 @@ func TestPresence(t *testing.T) {
 
 	c.onMessage(nil, &message{
 		topic:   "emitter/presence/",
-		payload: ` {"time":1589626821,"event":"status","channel":"retain-demo/","who":[{"id":"B"}, {"id":"C"}]}`,
+		payload: ` {"time":1589626821,"event":"unsubscribe","channel":"retain-demo/","who":[{"id":"B"}, {"id":"C"}]}`,
 	})
 
 	c.onMessage(nil, &message{
