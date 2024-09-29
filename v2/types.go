@@ -192,8 +192,8 @@ type historyRequest struct {
 
 type HistoryMessage struct {
 	ID      MessageID `json:"id"`
-	Topic   string    `json:"topic"`
-	Payload string    `json:"payload"`
+	Channel string    `json:"channel"`
+	Payload []byte    `json:"payload"`
 }
 
 type historyResponse struct {
