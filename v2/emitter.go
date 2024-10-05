@@ -166,6 +166,7 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 		var presenceResp presenceResponse
 		if err := json.Unmarshal(m.Payload(), &presenceResp); err != nil {
 			log.Println("emitter:", err.Error())
+			return
 		}
 
 		// If it's not the "status" response of the Presence RPC but a "change" event, we call the handler
@@ -175,6 +176,7 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 			r.Who = append(r.Who, PresenceInfo{})
 			if err := json.Unmarshal([]byte(presenceResp.Who), &r.Who[0]); err != nil {
 				log.Println("emitter:", err.Error())
+				return
 			}
 			c.presence(c, r)
 		} else if presenceResp.RequestID() > 0 {
@@ -188,6 +190,7 @@ func (c *Client) onMessage(_ mqtt.Client, m mqtt.Message) {
 
 			if err := json.Unmarshal([]byte(presenceResp.Who), &r.Who); err != nil {
 				log.Println("emitter:", err.Error())
+				return
 			}
 			c.store.NotifyResponse(presenceResp.RequestID(), &r)
 		}
