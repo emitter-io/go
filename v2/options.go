@@ -114,6 +114,16 @@ func WithAutoReconnect(a bool) func(*Client) {
 	}
 }
 
+// WithCleanSession sets whether the MQTT session should be cleaned when the connection is lost.
+// If false, the client will make a persistent connection and the server will attempt to store
+// messages for the client upon unclean disconnection.  If true, the client will need to resubscribe
+// to all channels in the OnConnect() handler so subscriptions are not lost due to disconnect.  Default: true.
+func WithCleanSession(a bool) func(*Client) {
+	return func(c *Client) {
+		c.opts.SetCleanSession(a)
+	}
+}
+
 // option represents a key/value pair that can be supplied to the publish/subscribe or unsubscribe
 // methods and provide ways to configure the operation.
 type option string
